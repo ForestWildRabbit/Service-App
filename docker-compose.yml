@@ -34,7 +34,7 @@ services:
     hostname: redis
 
 
-  worker:
+  worker: &default-worker
     container_name: worker
     build:
       context: .
@@ -53,6 +53,12 @@ services:
     depends_on:
       - redis
       - database
+
+
+  worker2:
+    <<: *default-worker
+    container_name: worker2
+    hostname: worker2
 
 
   flower:
