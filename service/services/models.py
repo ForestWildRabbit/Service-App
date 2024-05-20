@@ -1,7 +1,9 @@
 from django.core.validators import MaxValueValidator
 from django.db import models
+from django.db.models.signals import post_delete
 
 from clients.models import Client
+from services.receivers import delete_cache_total_price
 from services.tasks import set_price, set_comment
 
 
@@ -15,8 +17,9 @@ class Service(models.Model):
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         if self.full_price != self.__full_price:  # on change full_price field
-            for subscription in self.subscriptions.all():   # related name
+            for subscription in Subscription.objects.all().select_related('service'):   # related name
                 set_price.delay(subscription.id)
+                set_comment.delay(subscription.id)
 
         return super().save(force_insert, force_update, using, update_fields)
 
@@ -51,3 +54,12 @@ class Subscription(models.Model):
     price = models.PositiveIntegerField(default=0)
     comment = models.CharField(max_length=50, default='default')
 
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        creating = not self.id
+        result = super().save(force_insert, force_update, using, update_fields)
+        if creating:
+            set_price.delay(self.id)
+        return result
+
+
+post_delete.connect(receiver=delete_cache_total_price, sender=Subscription)

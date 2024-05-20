@@ -10,8 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 import os
+import random
 from pathlib import Path
-
+import logging
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -135,13 +136,20 @@ LOGGING = {
     'handlers': {
         'console': {'class': 'logging.StreamHandler'}
     },
+
     'loggers': {
         'django.db.backends': {
             'handlers': ['console'],
             'level': 'DEBUG'
-        }
+        },
+        "django": {
+            "handlers": ["console"],
+            "propagate": True,
+        },
     }
 }
+
+DJANGO_LOGGER = logging.getLogger('django')
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (
@@ -153,4 +161,21 @@ REST_FRAMEWORK = {
 }
 
 CELERY_BROKER_URL = 'redis://redis:6379/0'
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://redis:6379/1",
+    }
+}
+
+CACHES_TTL = {
+    'fast': 30,
+    'default': 3600,
+    'long': 86400,
+}
+
+CACHES_DATA = {
+    'PRICE_CACHE_NAME': 'total_price',
+}
 
