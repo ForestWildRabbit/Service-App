@@ -52,7 +52,15 @@ class Subscription(models.Model):
     service = models.ForeignKey(Service, related_name='subscriptions', on_delete=models.PROTECT)
     plan = models.ForeignKey(Plan, related_name='subscriptions', on_delete=models.PROTECT)
     price = models.PositiveIntegerField(default=0)
-    comment = models.CharField(max_length=50, default='default')
+    comment = models.CharField(max_length=50, default='default', db_index=True)  # index for comment field
+
+    field_a = models.CharField(max_length=50, default='')
+    field_b = models.CharField(max_length=50, default='')
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['field_a', 'field_b'])   # index for many fields
+        ]
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         creating = not self.id
